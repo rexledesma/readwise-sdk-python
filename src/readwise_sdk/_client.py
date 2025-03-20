@@ -13,6 +13,7 @@ from ._qs import Querystring
 from ._types import (
     NOT_GIVEN,
     Omit,
+    Headers,
     Timeout,
     NotGiven,
     Transport,
@@ -24,15 +25,14 @@ from ._utils import (
     get_async_library,
 )
 from ._version import __version__
-from .resources import pets, user
+from .resources import auth, books, highlights
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import APIStatusError, ReadwiseSDKError
+from ._exceptions import APIStatusError
 from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
     AsyncAPIClient,
 )
-from .resources.store import store
 
 __all__ = [
     "Timeout",
@@ -47,14 +47,14 @@ __all__ = [
 
 
 class ReadwiseSDK(SyncAPIClient):
-    pets: pets.PetsResource
-    store: store.StoreResource
-    user: user.UserResource
+    auth: auth.AuthResource
+    highlights: highlights.HighlightsResource
+    books: books.BooksResource
     with_raw_response: ReadwiseSDKWithRawResponse
     with_streaming_response: ReadwiseSDKWithStreamedResponse
 
     # client options
-    api_key: str
+    api_key: str | None
 
     def __init__(
         self,
@@ -81,20 +81,16 @@ class ReadwiseSDK(SyncAPIClient):
     ) -> None:
         """Construct a new synchronous ReadwiseSDK client instance.
 
-        This automatically infers the `api_key` argument from the `PETSTORE_API_KEY` environment variable if it is not provided.
+        This automatically infers the `api_key` argument from the `READWISE_API_KEY` environment variable if it is not provided.
         """
         if api_key is None:
-            api_key = os.environ.get("PETSTORE_API_KEY")
-        if api_key is None:
-            raise ReadwiseSDKError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the PETSTORE_API_KEY environment variable"
-            )
+            api_key = os.environ.get("READWISE_API_KEY")
         self.api_key = api_key
 
         if base_url is None:
             base_url = os.environ.get("READWISE_SDK_BASE_URL")
         if base_url is None:
-            base_url = f"https://petstore3.swagger.io/api/v3"
+            base_url = f"https://readwise.io/api/v2"
 
         super().__init__(
             version=__version__,
@@ -107,9 +103,9 @@ class ReadwiseSDK(SyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.pets = pets.PetsResource(self)
-        self.store = store.StoreResource(self)
-        self.user = user.UserResource(self)
+        self.auth = auth.AuthResource(self)
+        self.highlights = highlights.HighlightsResource(self)
+        self.books = books.BooksResource(self)
         self.with_raw_response = ReadwiseSDKWithRawResponse(self)
         self.with_streaming_response = ReadwiseSDKWithStreamedResponse(self)
 
@@ -122,7 +118,9 @@ class ReadwiseSDK(SyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        return {"api_key": api_key}
+        if api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {api_key}"}
 
     @property
     @override
@@ -132,6 +130,17 @@ class ReadwiseSDK(SyncAPIClient):
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if self.api_key and headers.get("Authorization"):
+            return
+        if isinstance(custom_headers.get("Authorization"), Omit):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected the api_key to be set. Or for the `Authorization` headers to be explicitly omitted"'
+        )
 
     def copy(
         self,
@@ -219,14 +228,14 @@ class ReadwiseSDK(SyncAPIClient):
 
 
 class AsyncReadwiseSDK(AsyncAPIClient):
-    pets: pets.AsyncPetsResource
-    store: store.AsyncStoreResource
-    user: user.AsyncUserResource
+    auth: auth.AsyncAuthResource
+    highlights: highlights.AsyncHighlightsResource
+    books: books.AsyncBooksResource
     with_raw_response: AsyncReadwiseSDKWithRawResponse
     with_streaming_response: AsyncReadwiseSDKWithStreamedResponse
 
     # client options
-    api_key: str
+    api_key: str | None
 
     def __init__(
         self,
@@ -253,20 +262,16 @@ class AsyncReadwiseSDK(AsyncAPIClient):
     ) -> None:
         """Construct a new async AsyncReadwiseSDK client instance.
 
-        This automatically infers the `api_key` argument from the `PETSTORE_API_KEY` environment variable if it is not provided.
+        This automatically infers the `api_key` argument from the `READWISE_API_KEY` environment variable if it is not provided.
         """
         if api_key is None:
-            api_key = os.environ.get("PETSTORE_API_KEY")
-        if api_key is None:
-            raise ReadwiseSDKError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the PETSTORE_API_KEY environment variable"
-            )
+            api_key = os.environ.get("READWISE_API_KEY")
         self.api_key = api_key
 
         if base_url is None:
             base_url = os.environ.get("READWISE_SDK_BASE_URL")
         if base_url is None:
-            base_url = f"https://petstore3.swagger.io/api/v3"
+            base_url = f"https://readwise.io/api/v2"
 
         super().__init__(
             version=__version__,
@@ -279,9 +284,9 @@ class AsyncReadwiseSDK(AsyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.pets = pets.AsyncPetsResource(self)
-        self.store = store.AsyncStoreResource(self)
-        self.user = user.AsyncUserResource(self)
+        self.auth = auth.AsyncAuthResource(self)
+        self.highlights = highlights.AsyncHighlightsResource(self)
+        self.books = books.AsyncBooksResource(self)
         self.with_raw_response = AsyncReadwiseSDKWithRawResponse(self)
         self.with_streaming_response = AsyncReadwiseSDKWithStreamedResponse(self)
 
@@ -294,7 +299,9 @@ class AsyncReadwiseSDK(AsyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        return {"api_key": api_key}
+        if api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {api_key}"}
 
     @property
     @override
@@ -304,6 +311,17 @@ class AsyncReadwiseSDK(AsyncAPIClient):
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if self.api_key and headers.get("Authorization"):
+            return
+        if isinstance(custom_headers.get("Authorization"), Omit):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected the api_key to be set. Or for the `Authorization` headers to be explicitly omitted"'
+        )
 
     def copy(
         self,
@@ -392,30 +410,30 @@ class AsyncReadwiseSDK(AsyncAPIClient):
 
 class ReadwiseSDKWithRawResponse:
     def __init__(self, client: ReadwiseSDK) -> None:
-        self.pets = pets.PetsResourceWithRawResponse(client.pets)
-        self.store = store.StoreResourceWithRawResponse(client.store)
-        self.user = user.UserResourceWithRawResponse(client.user)
+        self.auth = auth.AuthResourceWithRawResponse(client.auth)
+        self.highlights = highlights.HighlightsResourceWithRawResponse(client.highlights)
+        self.books = books.BooksResourceWithRawResponse(client.books)
 
 
 class AsyncReadwiseSDKWithRawResponse:
     def __init__(self, client: AsyncReadwiseSDK) -> None:
-        self.pets = pets.AsyncPetsResourceWithRawResponse(client.pets)
-        self.store = store.AsyncStoreResourceWithRawResponse(client.store)
-        self.user = user.AsyncUserResourceWithRawResponse(client.user)
+        self.auth = auth.AsyncAuthResourceWithRawResponse(client.auth)
+        self.highlights = highlights.AsyncHighlightsResourceWithRawResponse(client.highlights)
+        self.books = books.AsyncBooksResourceWithRawResponse(client.books)
 
 
 class ReadwiseSDKWithStreamedResponse:
     def __init__(self, client: ReadwiseSDK) -> None:
-        self.pets = pets.PetsResourceWithStreamingResponse(client.pets)
-        self.store = store.StoreResourceWithStreamingResponse(client.store)
-        self.user = user.UserResourceWithStreamingResponse(client.user)
+        self.auth = auth.AuthResourceWithStreamingResponse(client.auth)
+        self.highlights = highlights.HighlightsResourceWithStreamingResponse(client.highlights)
+        self.books = books.BooksResourceWithStreamingResponse(client.books)
 
 
 class AsyncReadwiseSDKWithStreamedResponse:
     def __init__(self, client: AsyncReadwiseSDK) -> None:
-        self.pets = pets.AsyncPetsResourceWithStreamingResponse(client.pets)
-        self.store = store.AsyncStoreResourceWithStreamingResponse(client.store)
-        self.user = user.AsyncUserResourceWithStreamingResponse(client.user)
+        self.auth = auth.AsyncAuthResourceWithStreamingResponse(client.auth)
+        self.highlights = highlights.AsyncHighlightsResourceWithStreamingResponse(client.highlights)
+        self.books = books.AsyncBooksResourceWithStreamingResponse(client.books)
 
 
 Client = ReadwiseSDK
