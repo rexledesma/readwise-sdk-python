@@ -20,7 +20,7 @@ or products provided by Readwise please follow the respective company's security
 
 ### Readwise Terms and Policies
 
-Please contact dev-feedback@readwise-sdk.com for any questions or concerns regarding security of our services.
+Please contact rex@rexledesma.com for any questions or concerns regarding security of our services.
 
 ---
 
