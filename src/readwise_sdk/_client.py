@@ -39,19 +39,19 @@ __all__ = [
     "Transport",
     "ProxiesTypes",
     "RequestOptions",
-    "ReadwiseSDK",
-    "AsyncReadwiseSDK",
+    "Readwise",
+    "AsyncReadwise",
     "Client",
     "AsyncClient",
 ]
 
 
-class ReadwiseSDK(SyncAPIClient):
+class Readwise(SyncAPIClient):
     auth: auth.AuthResource
     highlights: highlights.HighlightsResource
     books: books.BooksResource
-    with_raw_response: ReadwiseSDKWithRawResponse
-    with_streaming_response: ReadwiseSDKWithStreamedResponse
+    with_raw_response: ReadwiseWithRawResponse
+    with_streaming_response: ReadwiseWithStreamedResponse
 
     # client options
     api_key: str | None
@@ -79,7 +79,7 @@ class ReadwiseSDK(SyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new synchronous ReadwiseSDK client instance.
+        """Construct a new synchronous Readwise client instance.
 
         This automatically infers the `api_key` argument from the `READWISE_API_KEY` environment variable if it is not provided.
         """
@@ -88,7 +88,7 @@ class ReadwiseSDK(SyncAPIClient):
         self.api_key = api_key
 
         if base_url is None:
-            base_url = os.environ.get("READWISE_SDK_BASE_URL")
+            base_url = os.environ.get("READWISE_BASE_URL")
         if base_url is None:
             base_url = f"https://readwise.io/api/v2"
 
@@ -106,8 +106,8 @@ class ReadwiseSDK(SyncAPIClient):
         self.auth = auth.AuthResource(self)
         self.highlights = highlights.HighlightsResource(self)
         self.books = books.BooksResource(self)
-        self.with_raw_response = ReadwiseSDKWithRawResponse(self)
-        self.with_streaming_response = ReadwiseSDKWithStreamedResponse(self)
+        self.with_raw_response = ReadwiseWithRawResponse(self)
+        self.with_streaming_response = ReadwiseWithStreamedResponse(self)
 
     @property
     @override
@@ -227,12 +227,12 @@ class ReadwiseSDK(SyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class AsyncReadwiseSDK(AsyncAPIClient):
+class AsyncReadwise(AsyncAPIClient):
     auth: auth.AsyncAuthResource
     highlights: highlights.AsyncHighlightsResource
     books: books.AsyncBooksResource
-    with_raw_response: AsyncReadwiseSDKWithRawResponse
-    with_streaming_response: AsyncReadwiseSDKWithStreamedResponse
+    with_raw_response: AsyncReadwiseWithRawResponse
+    with_streaming_response: AsyncReadwiseWithStreamedResponse
 
     # client options
     api_key: str | None
@@ -260,7 +260,7 @@ class AsyncReadwiseSDK(AsyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new async AsyncReadwiseSDK client instance.
+        """Construct a new async AsyncReadwise client instance.
 
         This automatically infers the `api_key` argument from the `READWISE_API_KEY` environment variable if it is not provided.
         """
@@ -269,7 +269,7 @@ class AsyncReadwiseSDK(AsyncAPIClient):
         self.api_key = api_key
 
         if base_url is None:
-            base_url = os.environ.get("READWISE_SDK_BASE_URL")
+            base_url = os.environ.get("READWISE_BASE_URL")
         if base_url is None:
             base_url = f"https://readwise.io/api/v2"
 
@@ -287,8 +287,8 @@ class AsyncReadwiseSDK(AsyncAPIClient):
         self.auth = auth.AsyncAuthResource(self)
         self.highlights = highlights.AsyncHighlightsResource(self)
         self.books = books.AsyncBooksResource(self)
-        self.with_raw_response = AsyncReadwiseSDKWithRawResponse(self)
-        self.with_streaming_response = AsyncReadwiseSDKWithStreamedResponse(self)
+        self.with_raw_response = AsyncReadwiseWithRawResponse(self)
+        self.with_streaming_response = AsyncReadwiseWithStreamedResponse(self)
 
     @property
     @override
@@ -408,34 +408,34 @@ class AsyncReadwiseSDK(AsyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class ReadwiseSDKWithRawResponse:
-    def __init__(self, client: ReadwiseSDK) -> None:
+class ReadwiseWithRawResponse:
+    def __init__(self, client: Readwise) -> None:
         self.auth = auth.AuthResourceWithRawResponse(client.auth)
         self.highlights = highlights.HighlightsResourceWithRawResponse(client.highlights)
         self.books = books.BooksResourceWithRawResponse(client.books)
 
 
-class AsyncReadwiseSDKWithRawResponse:
-    def __init__(self, client: AsyncReadwiseSDK) -> None:
+class AsyncReadwiseWithRawResponse:
+    def __init__(self, client: AsyncReadwise) -> None:
         self.auth = auth.AsyncAuthResourceWithRawResponse(client.auth)
         self.highlights = highlights.AsyncHighlightsResourceWithRawResponse(client.highlights)
         self.books = books.AsyncBooksResourceWithRawResponse(client.books)
 
 
-class ReadwiseSDKWithStreamedResponse:
-    def __init__(self, client: ReadwiseSDK) -> None:
+class ReadwiseWithStreamedResponse:
+    def __init__(self, client: Readwise) -> None:
         self.auth = auth.AuthResourceWithStreamingResponse(client.auth)
         self.highlights = highlights.HighlightsResourceWithStreamingResponse(client.highlights)
         self.books = books.BooksResourceWithStreamingResponse(client.books)
 
 
-class AsyncReadwiseSDKWithStreamedResponse:
-    def __init__(self, client: AsyncReadwiseSDK) -> None:
+class AsyncReadwiseWithStreamedResponse:
+    def __init__(self, client: AsyncReadwise) -> None:
         self.auth = auth.AsyncAuthResourceWithStreamingResponse(client.auth)
         self.highlights = highlights.AsyncHighlightsResourceWithStreamingResponse(client.highlights)
         self.books = books.AsyncBooksResourceWithStreamingResponse(client.books)
 
 
-Client = ReadwiseSDK
+Client = Readwise
 
-AsyncClient = AsyncReadwiseSDK
+AsyncClient = AsyncReadwise
