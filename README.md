@@ -1,6 +1,6 @@
 # Readwise SDK Python API library
 
-[![PyPI version](https://img.shields.io/pypi/v/readwise_sdk.svg)](https://pypi.org/project/readwise_sdk/)
+[![PyPI version](https://img.shields.io/pypi/v/readwise-sdk.svg)](https://pypi.org/project/readwise-sdk/)
 
 The Readwise SDK Python library provides convenient access to the Readwise SDK REST API from any Python 3.8+
 application. The library includes type definitions for all request params and response fields,
@@ -15,12 +15,9 @@ The REST API documentation can be found on [readwise.io](https://readwise.io/api
 ## Installation
 
 ```sh
-# install from the production repo
-pip install git+ssh://git@github.com/rexledesma/readwise-sdk-python.git
+# install from PyPI
+pip install --pre readwise-sdk
 ```
-
-> [!NOTE]
-> Once this package is [published to PyPI](https://app.stainless.com/docs/guides/publish), this will become: `pip install --pre readwise_sdk`
 
 ## Usage
 
