@@ -120,7 +120,7 @@ class ReadwiseSDK(SyncAPIClient):
         api_key = self.api_key
         if api_key is None:
             return {}
-        return {"Authorization": f"Bearer {api_key}"}
+        return {"Authorization": api_key}
 
     @property
     @override
@@ -301,7 +301,7 @@ class AsyncReadwiseSDK(AsyncAPIClient):
         api_key = self.api_key
         if api_key is None:
             return {}
-        return {"Authorization": f"Bearer {api_key}"}
+        return {"Authorization": api_key}
 
     @property
     @override

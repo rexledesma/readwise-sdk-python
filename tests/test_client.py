@@ -337,7 +337,7 @@ class TestReadwiseSDK:
     def test_validate_headers(self) -> None:
         client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+        assert request.headers.get("Authorization") == api_key
 
         with update_env(**{"READWISE_API_KEY": Omit()}):
             client2 = ReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
@@ -1108,7 +1108,7 @@ class TestAsyncReadwiseSDK:
     def test_validate_headers(self) -> None:
         client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+        assert request.headers.get("Authorization") == api_key
 
         with update_env(**{"READWISE_API_KEY": Omit()}):
             client2 = AsyncReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
