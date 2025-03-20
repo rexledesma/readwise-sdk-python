@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.0-alpha.2 (2025-03-20)
+
+Full Changelog: [v0.1.0-alpha.1...v0.1.0-alpha.2](https://github.com/rexledesma/readwise-sdk-python/compare/v0.1.0-alpha.1...v0.1.0-alpha.2)
+
+### Features
+
+* **api:** update via SDK Studio ([#6](https://github.com/rexledesma/readwise-sdk-python/issues/6)) ([4470d55](https://github.com/rexledesma/readwise-sdk-python/commit/4470d5547910af6658bb4a1d12db110df2edda64))
+* **api:** update via SDK Studio ([#7](https://github.com/rexledesma/readwise-sdk-python/issues/7)) ([b430da6](https://github.com/rexledesma/readwise-sdk-python/commit/b430da6388497541cf8e3dbe78d0b7e0abfe172a))
+
+
+### Chores
+
+* **internal:** version bump ([#4](https://github.com/rexledesma/readwise-sdk-python/issues/4)) ([73c4e63](https://github.com/rexledesma/readwise-sdk-python/commit/73c4e63f2b1f6285ed7c505558744b2392851ef5))
+
 ## 0.1.0-alpha.1 (2025-03-20)
 
 Full Changelog: [v0.0.1-alpha.0...v0.1.0-alpha.1](https://github.com/rexledesma/readwise-sdk-python/compare/v0.0.1-alpha.0...v0.1.0-alpha.1)
