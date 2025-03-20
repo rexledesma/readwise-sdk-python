@@ -21,7 +21,7 @@ import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from readwise_sdk import ReadwiseSDK, AsyncReadwiseSDK, APIResponseValidationError
+from readwise_sdk import Readwise, AsyncReadwise, APIResponseValidationError
 from readwise_sdk._types import Omit
 from readwise_sdk._models import BaseModel, FinalRequestOptions
 from readwise_sdk._constants import RAW_RESPONSE_HEADER
@@ -49,7 +49,7 @@ def _low_retry_timeout(*_args: Any, **_kwargs: Any) -> float:
     return 0.1
 
 
-def _get_open_connections(client: ReadwiseSDK | AsyncReadwiseSDK) -> int:
+def _get_open_connections(client: Readwise | AsyncReadwise) -> int:
     transport = client._client._transport
     assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
 
@@ -57,8 +57,8 @@ def _get_open_connections(client: ReadwiseSDK | AsyncReadwiseSDK) -> int:
     return len(pool._requests)
 
 
-class TestReadwiseSDK:
-    client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+class TestReadwise:
+    client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
     @pytest.mark.respx(base_url=base_url)
     def test_raw_response(self, respx_mock: MockRouter) -> None:
@@ -105,7 +105,7 @@ class TestReadwiseSDK:
         assert isinstance(self.client.timeout, httpx.Timeout)
 
     def test_copy_default_headers(self) -> None:
-        client = ReadwiseSDK(
+        client = Readwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         assert client.default_headers["X-Foo"] == "bar"
@@ -139,7 +139,7 @@ class TestReadwiseSDK:
             client.copy(set_default_headers={}, default_headers={"X-Foo": "Bar"})
 
     def test_copy_default_query(self) -> None:
-        client = ReadwiseSDK(
+        client = Readwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
         )
         assert _get_params(client)["foo"] == "bar"
@@ -264,7 +264,7 @@ class TestReadwiseSDK:
         assert timeout == httpx.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
-        client = ReadwiseSDK(
+        client = Readwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
         )
 
@@ -275,7 +275,7 @@ class TestReadwiseSDK:
     def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         with httpx.Client(timeout=None) as http_client:
-            client = ReadwiseSDK(
+            client = Readwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -285,7 +285,7 @@ class TestReadwiseSDK:
 
         # no timeout given to the httpx client should not use the httpx default
         with httpx.Client() as http_client:
-            client = ReadwiseSDK(
+            client = Readwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -295,7 +295,7 @@ class TestReadwiseSDK:
 
         # explicitly passing the default timeout currently results in it being ignored
         with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = ReadwiseSDK(
+            client = Readwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -306,7 +306,7 @@ class TestReadwiseSDK:
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             async with httpx.AsyncClient() as http_client:
-                ReadwiseSDK(
+                Readwise(
                     base_url=base_url,
                     api_key=api_key,
                     _strict_response_validation=True,
@@ -314,14 +314,14 @@ class TestReadwiseSDK:
                 )
 
     def test_default_headers_option(self) -> None:
-        client = ReadwiseSDK(
+        client = Readwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        client2 = ReadwiseSDK(
+        client2 = Readwise(
             base_url=base_url,
             api_key=api_key,
             _strict_response_validation=True,
@@ -335,12 +335,12 @@ class TestReadwiseSDK:
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
     def test_validate_headers(self) -> None:
-        client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == api_key
 
         with update_env(**{"READWISE_API_KEY": Omit()}):
-            client2 = ReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
+            client2 = Readwise(base_url=base_url, api_key=None, _strict_response_validation=True)
 
         with pytest.raises(
             TypeError,
@@ -354,7 +354,7 @@ class TestReadwiseSDK:
         assert request2.headers.get("Authorization") is None
 
     def test_default_query_option(self) -> None:
-        client = ReadwiseSDK(
+        client = Readwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -468,7 +468,7 @@ class TestReadwiseSDK:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, client: ReadwiseSDK) -> None:
+    def test_multipart_repeating_array(self, client: Readwise) -> None:
         request = client._build_request(
             FinalRequestOptions.construct(
                 method="get",
@@ -555,9 +555,7 @@ class TestReadwiseSDK:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = ReadwiseSDK(
-            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
-        )
+        client = Readwise(base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True)
         assert client.base_url == "https://example.com/from_init/"
 
         client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
@@ -565,17 +563,15 @@ class TestReadwiseSDK:
         assert client.base_url == "https://example.com/from_setter/"
 
     def test_base_url_env(self) -> None:
-        with update_env(READWISE_SDK_BASE_URL="http://localhost:5000/from/env"):
-            client = ReadwiseSDK(api_key=api_key, _strict_response_validation=True)
+        with update_env(READWISE_BASE_URL="http://localhost:5000/from/env"):
+            client = Readwise(api_key=api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            ReadwiseSDK(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            ReadwiseSDK(
+            Readwise(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            Readwise(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -584,7 +580,7 @@ class TestReadwiseSDK:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_trailing_slash(self, client: ReadwiseSDK) -> None:
+    def test_base_url_trailing_slash(self, client: Readwise) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -597,10 +593,8 @@ class TestReadwiseSDK:
     @pytest.mark.parametrize(
         "client",
         [
-            ReadwiseSDK(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            ReadwiseSDK(
+            Readwise(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            Readwise(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -609,7 +603,7 @@ class TestReadwiseSDK:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_no_trailing_slash(self, client: ReadwiseSDK) -> None:
+    def test_base_url_no_trailing_slash(self, client: Readwise) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -622,10 +616,8 @@ class TestReadwiseSDK:
     @pytest.mark.parametrize(
         "client",
         [
-            ReadwiseSDK(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            ReadwiseSDK(
+            Readwise(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            Readwise(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -634,7 +626,7 @@ class TestReadwiseSDK:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_absolute_request_url(self, client: ReadwiseSDK) -> None:
+    def test_absolute_request_url(self, client: Readwise) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -645,7 +637,7 @@ class TestReadwiseSDK:
         assert request.url == "https://myapi.com/foo"
 
     def test_copied_client_does_not_close_http(self) -> None:
-        client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not client.is_closed()
 
         copied = client.copy()
@@ -656,7 +648,7 @@ class TestReadwiseSDK:
         assert not client.is_closed()
 
     def test_client_context_manager(self) -> None:
-        client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         with client as c2:
             assert c2 is client
             assert not c2.is_closed()
@@ -677,9 +669,7 @@ class TestReadwiseSDK:
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            ReadwiseSDK(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
-            )
+            Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None))
 
     @pytest.mark.respx(base_url=base_url)
     def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
@@ -688,12 +678,12 @@ class TestReadwiseSDK:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
         with pytest.raises(APIResponseValidationError):
             strict_client.get("/foo", cast_to=Model)
 
-        client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=False)
 
         response = client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -721,7 +711,7 @@ class TestReadwiseSDK:
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     def test_parse_retry_after_header(self, remaining_retries: int, retry_after: str, timeout: float) -> None:
-        client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = Readwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
@@ -754,7 +744,7 @@ class TestReadwiseSDK:
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     def test_retries_taken(
         self,
-        client: ReadwiseSDK,
+        client: Readwise,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -783,7 +773,7 @@ class TestReadwiseSDK:
     @mock.patch("readwise_sdk._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_omit_retry_count_header(
-        self, client: ReadwiseSDK, failures_before_success: int, respx_mock: MockRouter
+        self, client: Readwise, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -806,7 +796,7 @@ class TestReadwiseSDK:
     @mock.patch("readwise_sdk._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_overwrite_retry_count_header(
-        self, client: ReadwiseSDK, failures_before_success: int, respx_mock: MockRouter
+        self, client: Readwise, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -826,8 +816,8 @@ class TestReadwiseSDK:
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
 
-class TestAsyncReadwiseSDK:
-    client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+class TestAsyncReadwise:
+    client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
@@ -876,7 +866,7 @@ class TestAsyncReadwiseSDK:
         assert isinstance(self.client.timeout, httpx.Timeout)
 
     def test_copy_default_headers(self) -> None:
-        client = AsyncReadwiseSDK(
+        client = AsyncReadwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         assert client.default_headers["X-Foo"] == "bar"
@@ -910,7 +900,7 @@ class TestAsyncReadwiseSDK:
             client.copy(set_default_headers={}, default_headers={"X-Foo": "Bar"})
 
     def test_copy_default_query(self) -> None:
-        client = AsyncReadwiseSDK(
+        client = AsyncReadwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
         )
         assert _get_params(client)["foo"] == "bar"
@@ -1035,7 +1025,7 @@ class TestAsyncReadwiseSDK:
         assert timeout == httpx.Timeout(100.0)
 
     async def test_client_timeout_option(self) -> None:
-        client = AsyncReadwiseSDK(
+        client = AsyncReadwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
         )
 
@@ -1046,7 +1036,7 @@ class TestAsyncReadwiseSDK:
     async def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         async with httpx.AsyncClient(timeout=None) as http_client:
-            client = AsyncReadwiseSDK(
+            client = AsyncReadwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -1056,7 +1046,7 @@ class TestAsyncReadwiseSDK:
 
         # no timeout given to the httpx client should not use the httpx default
         async with httpx.AsyncClient() as http_client:
-            client = AsyncReadwiseSDK(
+            client = AsyncReadwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -1066,7 +1056,7 @@ class TestAsyncReadwiseSDK:
 
         # explicitly passing the default timeout currently results in it being ignored
         async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = AsyncReadwiseSDK(
+            client = AsyncReadwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -1077,7 +1067,7 @@ class TestAsyncReadwiseSDK:
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             with httpx.Client() as http_client:
-                AsyncReadwiseSDK(
+                AsyncReadwise(
                     base_url=base_url,
                     api_key=api_key,
                     _strict_response_validation=True,
@@ -1085,14 +1075,14 @@ class TestAsyncReadwiseSDK:
                 )
 
     def test_default_headers_option(self) -> None:
-        client = AsyncReadwiseSDK(
+        client = AsyncReadwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        client2 = AsyncReadwiseSDK(
+        client2 = AsyncReadwise(
             base_url=base_url,
             api_key=api_key,
             _strict_response_validation=True,
@@ -1106,12 +1096,12 @@ class TestAsyncReadwiseSDK:
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
     def test_validate_headers(self) -> None:
-        client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == api_key
 
         with update_env(**{"READWISE_API_KEY": Omit()}):
-            client2 = AsyncReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
+            client2 = AsyncReadwise(base_url=base_url, api_key=None, _strict_response_validation=True)
 
         with pytest.raises(
             TypeError,
@@ -1125,7 +1115,7 @@ class TestAsyncReadwiseSDK:
         assert request2.headers.get("Authorization") is None
 
     def test_default_query_option(self) -> None:
-        client = AsyncReadwiseSDK(
+        client = AsyncReadwise(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1239,7 +1229,7 @@ class TestAsyncReadwiseSDK:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, async_client: AsyncReadwiseSDK) -> None:
+    def test_multipart_repeating_array(self, async_client: AsyncReadwise) -> None:
         request = async_client._build_request(
             FinalRequestOptions.construct(
                 method="get",
@@ -1326,7 +1316,7 @@ class TestAsyncReadwiseSDK:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = AsyncReadwiseSDK(
+        client = AsyncReadwise(
             base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
         )
         assert client.base_url == "https://example.com/from_init/"
@@ -1336,17 +1326,17 @@ class TestAsyncReadwiseSDK:
         assert client.base_url == "https://example.com/from_setter/"
 
     def test_base_url_env(self) -> None:
-        with update_env(READWISE_SDK_BASE_URL="http://localhost:5000/from/env"):
-            client = AsyncReadwiseSDK(api_key=api_key, _strict_response_validation=True)
+        with update_env(READWISE_BASE_URL="http://localhost:5000/from/env"):
+            client = AsyncReadwise(api_key=api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
             ),
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -1355,7 +1345,7 @@ class TestAsyncReadwiseSDK:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_trailing_slash(self, client: AsyncReadwiseSDK) -> None:
+    def test_base_url_trailing_slash(self, client: AsyncReadwise) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1368,10 +1358,10 @@ class TestAsyncReadwiseSDK:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
             ),
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -1380,7 +1370,7 @@ class TestAsyncReadwiseSDK:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_no_trailing_slash(self, client: AsyncReadwiseSDK) -> None:
+    def test_base_url_no_trailing_slash(self, client: AsyncReadwise) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1393,10 +1383,10 @@ class TestAsyncReadwiseSDK:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
             ),
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -1405,7 +1395,7 @@ class TestAsyncReadwiseSDK:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_absolute_request_url(self, client: AsyncReadwiseSDK) -> None:
+    def test_absolute_request_url(self, client: AsyncReadwise) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1416,7 +1406,7 @@ class TestAsyncReadwiseSDK:
         assert request.url == "https://myapi.com/foo"
 
     async def test_copied_client_does_not_close_http(self) -> None:
-        client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not client.is_closed()
 
         copied = client.copy()
@@ -1428,7 +1418,7 @@ class TestAsyncReadwiseSDK:
         assert not client.is_closed()
 
     async def test_client_context_manager(self) -> None:
-        client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         async with client as c2:
             assert c2 is client
             assert not c2.is_closed()
@@ -1450,7 +1440,7 @@ class TestAsyncReadwiseSDK:
 
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            AsyncReadwiseSDK(
+            AsyncReadwise(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
             )
 
@@ -1462,12 +1452,12 @@ class TestAsyncReadwiseSDK:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
         with pytest.raises(APIResponseValidationError):
             await strict_client.get("/foo", cast_to=Model)
 
-        client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=False)
 
         response = await client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -1496,7 +1486,7 @@ class TestAsyncReadwiseSDK:
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     @pytest.mark.asyncio
     async def test_parse_retry_after_header(self, remaining_retries: int, retry_after: str, timeout: float) -> None:
-        client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncReadwise(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
@@ -1534,7 +1524,7 @@ class TestAsyncReadwiseSDK:
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     async def test_retries_taken(
         self,
-        async_client: AsyncReadwiseSDK,
+        async_client: AsyncReadwise,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -1564,7 +1554,7 @@ class TestAsyncReadwiseSDK:
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
     async def test_omit_retry_count_header(
-        self, async_client: AsyncReadwiseSDK, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncReadwise, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1588,7 +1578,7 @@ class TestAsyncReadwiseSDK:
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
     async def test_overwrite_retry_count_header(
-        self, async_client: AsyncReadwiseSDK, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncReadwise, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 

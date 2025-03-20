@@ -16,11 +16,11 @@ before making any information public.
 ## Reporting Non-SDK Related Security Issues
 
 If you encounter security issues that are not directly related to SDKs but pertain to the services
-or products provided by Readwise SDK please follow the respective company's security reporting guidelines.
+or products provided by Readwise please follow the respective company's security reporting guidelines.
 
-### Readwise SDK Terms and Policies
+### Readwise Terms and Policies
 
-Please contact dev-feedback@readwise-sdk.com for any questions or concerns regarding security of our services.
+Please contact rex@rexledesma.com for any questions or concerns regarding security of our services.
 
 ---
 

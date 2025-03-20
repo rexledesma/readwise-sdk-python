@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 import anyio
 
 if TYPE_CHECKING:
-    from ._client import ReadwiseSDK, AsyncReadwiseSDK
+    from ._client import Readwise, AsyncReadwise
 
 
 class SyncAPIResource:
-    _client: ReadwiseSDK
+    _client: Readwise
 
-    def __init__(self, client: ReadwiseSDK) -> None:
+    def __init__(self, client: Readwise) -> None:
         self._client = client
         self._get = client.get
         self._post = client.post
@@ -28,9 +28,9 @@ class SyncAPIResource:
 
 
 class AsyncAPIResource:
-    _client: AsyncReadwiseSDK
+    _client: AsyncReadwise
 
-    def __init__(self, client: AsyncReadwiseSDK) -> None:
+    def __init__(self, client: AsyncReadwise) -> None:
         self._client = client
         self._get = client.get
         self._post = client.post

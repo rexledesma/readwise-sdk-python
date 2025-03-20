@@ -6,7 +6,7 @@ import httpx
 import pytest
 import pydantic
 
-from readwise_sdk import BaseModel, ReadwiseSDK, AsyncReadwiseSDK
+from readwise_sdk import Readwise, BaseModel, AsyncReadwise
 from readwise_sdk._response import (
     APIResponse,
     BaseAPIResponse,
@@ -56,7 +56,7 @@ def test_extract_response_type_binary_response() -> None:
 class PydanticModel(pydantic.BaseModel): ...
 
 
-def test_response_parse_mismatched_basemodel(client: ReadwiseSDK) -> None:
+def test_response_parse_mismatched_basemodel(client: Readwise) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=client,
@@ -74,7 +74,7 @@ def test_response_parse_mismatched_basemodel(client: ReadwiseSDK) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_response_parse_mismatched_basemodel(async_client: AsyncReadwiseSDK) -> None:
+async def test_async_response_parse_mismatched_basemodel(async_client: AsyncReadwise) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=async_client,
@@ -91,7 +91,7 @@ async def test_async_response_parse_mismatched_basemodel(async_client: AsyncRead
         await response.parse(to=PydanticModel)
 
 
-def test_response_parse_custom_stream(client: ReadwiseSDK) -> None:
+def test_response_parse_custom_stream(client: Readwise) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=client,
@@ -106,7 +106,7 @@ def test_response_parse_custom_stream(client: ReadwiseSDK) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_response_parse_custom_stream(async_client: AsyncReadwiseSDK) -> None:
+async def test_async_response_parse_custom_stream(async_client: AsyncReadwise) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=async_client,
@@ -125,7 +125,7 @@ class CustomModel(BaseModel):
     bar: int
 
 
-def test_response_parse_custom_model(client: ReadwiseSDK) -> None:
+def test_response_parse_custom_model(client: Readwise) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
@@ -141,7 +141,7 @@ def test_response_parse_custom_model(client: ReadwiseSDK) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_response_parse_custom_model(async_client: AsyncReadwiseSDK) -> None:
+async def test_async_response_parse_custom_model(async_client: AsyncReadwise) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=async_client,
@@ -156,7 +156,7 @@ async def test_async_response_parse_custom_model(async_client: AsyncReadwiseSDK)
     assert obj.bar == 2
 
 
-def test_response_parse_annotated_type(client: ReadwiseSDK) -> None:
+def test_response_parse_annotated_type(client: Readwise) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
@@ -173,7 +173,7 @@ def test_response_parse_annotated_type(client: ReadwiseSDK) -> None:
     assert obj.bar == 2
 
 
-async def test_async_response_parse_annotated_type(async_client: AsyncReadwiseSDK) -> None:
+async def test_async_response_parse_annotated_type(async_client: AsyncReadwise) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=async_client,
@@ -201,7 +201,7 @@ async def test_async_response_parse_annotated_type(async_client: AsyncReadwiseSD
         ("FalSe", False),
     ],
 )
-def test_response_parse_bool(client: ReadwiseSDK, content: str, expected: bool) -> None:
+def test_response_parse_bool(client: Readwise, content: str, expected: bool) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=content),
         client=client,
@@ -226,7 +226,7 @@ def test_response_parse_bool(client: ReadwiseSDK, content: str, expected: bool) 
         ("FalSe", False),
     ],
 )
-async def test_async_response_parse_bool(client: AsyncReadwiseSDK, content: str, expected: bool) -> None:
+async def test_async_response_parse_bool(client: AsyncReadwise, content: str, expected: bool) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=content),
         client=client,
@@ -245,7 +245,7 @@ class OtherModel(BaseModel):
 
 
 @pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
-def test_response_parse_expect_model_union_non_json_content(client: ReadwiseSDK) -> None:
+def test_response_parse_expect_model_union_non_json_content(client: Readwise) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=client,
@@ -262,7 +262,7 @@ def test_response_parse_expect_model_union_non_json_content(client: ReadwiseSDK)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("async_client", [False], indirect=True)  # loose validation
-async def test_async_response_parse_expect_model_union_non_json_content(async_client: AsyncReadwiseSDK) -> None:
+async def test_async_response_parse_expect_model_union_non_json_content(async_client: AsyncReadwise) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=async_client,

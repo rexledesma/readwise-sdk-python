@@ -1,8 +1,8 @@
-# Readwise SDK Python API library
+# Readwise Python API library
 
 [![PyPI version](https://img.shields.io/pypi/v/readwise_sdk.svg)](https://pypi.org/project/readwise_sdk/)
 
-The Readwise SDK Python library provides convenient access to the Readwise SDK REST API from any Python 3.8+
+The Readwise Python library provides convenient access to the Readwise REST API from any Python 3.8+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -28,9 +28,9 @@ The full API of this library can be found in [api.md](api.md).
 
 ```python
 import os
-from readwise_sdk import ReadwiseSDK
+from readwise_sdk import Readwise
 
-client = ReadwiseSDK(
+client = Readwise(
     api_key=os.environ.get("READWISE_API_KEY"),  # This is the default and can be omitted
 )
 
@@ -44,14 +44,14 @@ so that your API Key is not stored in source control.
 
 ## Async usage
 
-Simply import `AsyncReadwiseSDK` instead of `ReadwiseSDK` and use `await` with each API call:
+Simply import `AsyncReadwise` instead of `Readwise` and use `await` with each API call:
 
 ```python
 import os
 import asyncio
-from readwise_sdk import AsyncReadwiseSDK
+from readwise_sdk import AsyncReadwise
 
-client = AsyncReadwiseSDK(
+client = AsyncReadwise(
     api_key=os.environ.get("READWISE_API_KEY"),  # This is the default and can be omitted
 )
 
@@ -85,9 +85,9 @@ All errors inherit from `readwise_sdk.APIError`.
 
 ```python
 import readwise_sdk
-from readwise_sdk import ReadwiseSDK
+from readwise_sdk import Readwise
 
-client = ReadwiseSDK()
+client = Readwise()
 
 try:
     client.auth.check()
@@ -124,10 +124,10 @@ Connection errors (for example, due to a network connectivity problem), 408 Requ
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
-from readwise_sdk import ReadwiseSDK
+from readwise_sdk import Readwise
 
 # Configure the default for all requests:
-client = ReadwiseSDK(
+client = Readwise(
     # default is 2
     max_retries=0,
 )
@@ -142,16 +142,16 @@ By default requests time out after 1 minute. You can configure this with a `time
 which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/#fine-tuning-the-configuration) object:
 
 ```python
-from readwise_sdk import ReadwiseSDK
+from readwise_sdk import Readwise
 
 # Configure the default for all requests:
-client = ReadwiseSDK(
+client = Readwise(
     # 20 seconds (default is 1 minute)
     timeout=20.0,
 )
 
 # More granular control:
-client = ReadwiseSDK(
+client = Readwise(
     timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
 )
 
@@ -169,10 +169,10 @@ Note that requests that time out are [retried twice by default](#retries).
 
 We use the standard library [`logging`](https://docs.python.org/3/library/logging.html) module.
 
-You can enable logging by setting the environment variable `READWISE_SDK_LOG` to `info`.
+You can enable logging by setting the environment variable `READWISE_LOG` to `info`.
 
 ```shell
-$ export READWISE_SDK_LOG=info
+$ export READWISE_LOG=info
 ```
 
 Or to `debug` for more verbose logging.
@@ -194,9 +194,9 @@ if response.my_field is None:
 The "raw" Response object can be accessed by prefixing `.with_raw_response.` to any HTTP method call, e.g.,
 
 ```py
-from readwise_sdk import ReadwiseSDK
+from readwise_sdk import Readwise
 
-client = ReadwiseSDK()
+client = Readwise()
 response = client.auth.with_raw_response.check()
 print(response.headers.get('X-My-Header'))
 
@@ -268,10 +268,10 @@ You can directly override the [httpx client](https://www.python-httpx.org/api/#c
 
 ```python
 import httpx
-from readwise_sdk import ReadwiseSDK, DefaultHttpxClient
+from readwise_sdk import Readwise, DefaultHttpxClient
 
-client = ReadwiseSDK(
-    # Or use the `READWISE_SDK_BASE_URL` env var
+client = Readwise(
+    # Or use the `READWISE_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",
@@ -291,9 +291,9 @@ client.with_options(http_client=DefaultHttpxClient(...))
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
 
 ```py
-from readwise_sdk import ReadwiseSDK
+from readwise_sdk import Readwise
 
-with ReadwiseSDK() as client:
+with Readwise() as client:
   # make requests here
   ...
 
