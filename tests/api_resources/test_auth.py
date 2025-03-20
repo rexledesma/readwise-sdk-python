@@ -7,7 +7,7 @@ from typing import Any, cast
 
 import pytest
 
-from readwise_sdk import ReadwiseSDK, AsyncReadwiseSDK
+from readwise_sdk import Readwise, AsyncReadwise
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -17,13 +17,13 @@ class TestAuth:
 
     @pytest.mark.skip()
     @parametrize
-    def test_method_check(self, client: ReadwiseSDK) -> None:
+    def test_method_check(self, client: Readwise) -> None:
         auth = client.auth.check()
         assert auth is None
 
     @pytest.mark.skip()
     @parametrize
-    def test_raw_response_check(self, client: ReadwiseSDK) -> None:
+    def test_raw_response_check(self, client: Readwise) -> None:
         response = client.auth.with_raw_response.check()
 
         assert response.is_closed is True
@@ -33,7 +33,7 @@ class TestAuth:
 
     @pytest.mark.skip()
     @parametrize
-    def test_streaming_response_check(self, client: ReadwiseSDK) -> None:
+    def test_streaming_response_check(self, client: Readwise) -> None:
         with client.auth.with_streaming_response.check() as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -49,13 +49,13 @@ class TestAsyncAuth:
 
     @pytest.mark.skip()
     @parametrize
-    async def test_method_check(self, async_client: AsyncReadwiseSDK) -> None:
+    async def test_method_check(self, async_client: AsyncReadwise) -> None:
         auth = await async_client.auth.check()
         assert auth is None
 
     @pytest.mark.skip()
     @parametrize
-    async def test_raw_response_check(self, async_client: AsyncReadwiseSDK) -> None:
+    async def test_raw_response_check(self, async_client: AsyncReadwise) -> None:
         response = await async_client.auth.with_raw_response.check()
 
         assert response.is_closed is True
@@ -65,7 +65,7 @@ class TestAsyncAuth:
 
     @pytest.mark.skip()
     @parametrize
-    async def test_streaming_response_check(self, async_client: AsyncReadwiseSDK) -> None:
+    async def test_streaming_response_check(self, async_client: AsyncReadwise) -> None:
         async with async_client.auth.with_streaming_response.check() as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

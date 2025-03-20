@@ -18,11 +18,11 @@ __all__ = [
 ]
 
 
-class ReadwiseSDKError(Exception):
+class ReadwiseError(Exception):
     pass
 
 
-class APIError(ReadwiseSDKError):
+class APIError(ReadwiseError):
     message: str
     request: httpx.Request
 
