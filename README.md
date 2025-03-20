@@ -10,7 +10,7 @@ It is generated with [Stainless](https://www.stainless.com/).
 
 ## Documentation
 
-The REST API documentation can be found on [docs.readwise-sdk.com](https://docs.readwise-sdk.com). The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [readwise.io](https://readwise.io/api_deets). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
 
