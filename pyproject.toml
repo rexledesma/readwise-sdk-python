@@ -1,11 +1,11 @@
 [project]
 name = "readwise-sdk"
 version = "0.1.0-alpha.1"
-description = "The official Python library for the readwise-sdk API"
+description = "The official Python library for the readwise API"
 dynamic = ["readme"]
 license = "Apache-2.0"
 authors = [
-{ name = "Readwise SDK", email = "dev-feedback@readwise-sdk.com" },
+{ name = "Readwise", email = "dev-feedback@readwise-sdk.com" },
 ]
 dependencies = [
     "httpx>=0.23.0, <1",
