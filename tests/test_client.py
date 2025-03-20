@@ -25,7 +25,7 @@ from readwise_sdk import ReadwiseSDK, AsyncReadwiseSDK, APIResponseValidationErr
 from readwise_sdk._types import Omit
 from readwise_sdk._models import BaseModel, FinalRequestOptions
 from readwise_sdk._constants import RAW_RESPONSE_HEADER
-from readwise_sdk._exceptions import APIStatusError, APITimeoutError, ReadwiseSDKError, APIResponseValidationError
+from readwise_sdk._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
 from readwise_sdk._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -337,12 +337,21 @@ class TestReadwiseSDK:
     def test_validate_headers(self) -> None:
         client = ReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("api_key") == api_key
+        assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(ReadwiseSDKError):
-            with update_env(**{"PETSTORE_API_KEY": Omit()}):
-                client2 = ReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
-            _ = client2
+        with update_env(**{"READWISE_API_KEY": Omit()}):
+            client2 = ReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
+
+        with pytest.raises(
+            TypeError,
+            match="Could not resolve authentication method. Expected the api_key to be set. Or for the `Authorization` headers to be explicitly omitted",
+        ):
+            client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+
+        request2 = client2._build_request(
+            FinalRequestOptions(method="get", url="/foo", headers={"Authorization": Omit()})
+        )
+        assert request2.headers.get("Authorization") is None
 
     def test_default_query_option(self) -> None:
         client = ReadwiseSDK(
@@ -722,24 +731,20 @@ class TestReadwiseSDK:
     @mock.patch("readwise_sdk._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
-        respx_mock.get("/store/inventory").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+        respx_mock.get("/auth/").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            self.client.get(
-                "/store/inventory", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}}
-            )
+            self.client.get("/auth/", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}})
 
         assert _get_open_connections(self.client) == 0
 
     @mock.patch("readwise_sdk._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
-        respx_mock.get("/store/inventory").mock(return_value=httpx.Response(500))
+        respx_mock.get("/auth/").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            self.client.get(
-                "/store/inventory", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}}
-            )
+            self.client.get("/auth/", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}})
 
         assert _get_open_connections(self.client) == 0
 
@@ -767,9 +772,9 @@ class TestReadwiseSDK:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.get("/store/inventory").mock(side_effect=retry_handler)
+        respx_mock.get("/auth/").mock(side_effect=retry_handler)
 
-        response = client.store.with_raw_response.inventory()
+        response = client.auth.with_raw_response.check()
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -791,9 +796,9 @@ class TestReadwiseSDK:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.get("/store/inventory").mock(side_effect=retry_handler)
+        respx_mock.get("/auth/").mock(side_effect=retry_handler)
 
-        response = client.store.with_raw_response.inventory(extra_headers={"x-stainless-retry-count": Omit()})
+        response = client.auth.with_raw_response.check(extra_headers={"x-stainless-retry-count": Omit()})
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
@@ -814,9 +819,9 @@ class TestReadwiseSDK:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.get("/store/inventory").mock(side_effect=retry_handler)
+        respx_mock.get("/auth/").mock(side_effect=retry_handler)
 
-        response = client.store.with_raw_response.inventory(extra_headers={"x-stainless-retry-count": "42"})
+        response = client.auth.with_raw_response.check(extra_headers={"x-stainless-retry-count": "42"})
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
@@ -1103,12 +1108,21 @@ class TestAsyncReadwiseSDK:
     def test_validate_headers(self) -> None:
         client = AsyncReadwiseSDK(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("api_key") == api_key
+        assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(ReadwiseSDKError):
-            with update_env(**{"PETSTORE_API_KEY": Omit()}):
-                client2 = AsyncReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
-            _ = client2
+        with update_env(**{"READWISE_API_KEY": Omit()}):
+            client2 = AsyncReadwiseSDK(base_url=base_url, api_key=None, _strict_response_validation=True)
+
+        with pytest.raises(
+            TypeError,
+            match="Could not resolve authentication method. Expected the api_key to be set. Or for the `Authorization` headers to be explicitly omitted",
+        ):
+            client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+
+        request2 = client2._build_request(
+            FinalRequestOptions(method="get", url="/foo", headers={"Authorization": Omit()})
+        )
+        assert request2.headers.get("Authorization") is None
 
     def test_default_query_option(self) -> None:
         client = AsyncReadwiseSDK(
@@ -1492,11 +1506,11 @@ class TestAsyncReadwiseSDK:
     @mock.patch("readwise_sdk._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
-        respx_mock.get("/store/inventory").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+        respx_mock.get("/auth/").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
             await self.client.get(
-                "/store/inventory", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}}
+                "/auth/", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}}
             )
 
         assert _get_open_connections(self.client) == 0
@@ -1504,11 +1518,11 @@ class TestAsyncReadwiseSDK:
     @mock.patch("readwise_sdk._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
-        respx_mock.get("/store/inventory").mock(return_value=httpx.Response(500))
+        respx_mock.get("/auth/").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
             await self.client.get(
-                "/store/inventory", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}}
+                "/auth/", cast_to=httpx.Response, options={"headers": {RAW_RESPONSE_HEADER: "stream"}}
             )
 
         assert _get_open_connections(self.client) == 0
@@ -1538,9 +1552,9 @@ class TestAsyncReadwiseSDK:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.get("/store/inventory").mock(side_effect=retry_handler)
+        respx_mock.get("/auth/").mock(side_effect=retry_handler)
 
-        response = await client.store.with_raw_response.inventory()
+        response = await client.auth.with_raw_response.check()
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -1563,9 +1577,9 @@ class TestAsyncReadwiseSDK:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.get("/store/inventory").mock(side_effect=retry_handler)
+        respx_mock.get("/auth/").mock(side_effect=retry_handler)
 
-        response = await client.store.with_raw_response.inventory(extra_headers={"x-stainless-retry-count": Omit()})
+        response = await client.auth.with_raw_response.check(extra_headers={"x-stainless-retry-count": Omit()})
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
@@ -1587,9 +1601,9 @@ class TestAsyncReadwiseSDK:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.get("/store/inventory").mock(side_effect=retry_handler)
+        respx_mock.get("/auth/").mock(side_effect=retry_handler)
 
-        response = await client.store.with_raw_response.inventory(extra_headers={"x-stainless-retry-count": "42"})
+        response = await client.auth.with_raw_response.check(extra_headers={"x-stainless-retry-count": "42"})
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
